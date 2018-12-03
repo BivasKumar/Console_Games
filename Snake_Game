@@ -1,0 +1,293 @@
+#include <iostream>
+#include <fstream>
+#include <iomanip>
+#include <windows.h>
+#include <stdlib.h>
+#include <conio.h>
+#include <time.h>
+
+using namespace std;
+
+enum direction
+{
+    Stop,
+    Left,
+    Right,
+    Down,
+    Up
+} drxn;
+
+class Game
+{
+public:
+    bool game_over = false;
+    char player_name[25];
+    const int boundary_width = 140, boundary_height = 30;
+    int snake_x, snake_y, fruit_x, fruit_y, score = 0, highest_score = 0, saved_hs, diff_level, hide_sx, hide_sy;
+    int b = 2, s = 19, so = 190, f = 6, fo = 60, p = 16, h = 8, t = 20;
+    int tail_x[100], tail_y[100], tail_count = 0;
+    void About_player();
+    void Setup_snake_once();
+    void Setup_snake();
+    void Setup_fruit_once();
+    void Setup_fruit();
+    void Draw_boundary();
+    void Take_input();
+    void Initiate_logic();
+    void Show_progress();
+    void Save_progress();
+    void Read_progress();
+    void Goto_XY(int x, int y, int o);
+} G;
+
+void Game::About_player()
+{
+    system("cls");
+    cout << "-----Welcome to Snake Game-----\n";
+    cout << "Player name: ";
+    cin.getline(player_name, 25);
+    cout << "\nLevel-\n 1. Normal\n 2. Impossible";
+    cout << "\n\nChoose level: ";
+    cin >> diff_level;
+    system("cls");
+    cout << "\nHow to play-\n";
+    cout << " w -> move up\n s -> move down\n a -> move left\n d -> move right\n";
+    cout << " \xFE -> Friut\n \xDB -> Snake's head\n \xB0 -> Snake's tail\n";
+    cout << " Q -> Quit\n Right Click -> Pause/Resume\n";
+    system("pause");
+}
+
+void Game::Goto_XY(int x, int y, int o)
+{
+    COORD c;
+    c.X = x;
+    c.Y = y;
+    SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), c);
+    if(o == b)
+    {
+        cout << "\xDB"; //boundary
+    }
+    if(o == so)
+    {
+        cout << "\xDB"; //snake's head once
+    }
+    if(o == s)
+    {
+        cout << "\xDB"; //snake's head
+    }
+    if(o == t)
+    {
+        cout << "\xB0"; //snake's tail
+    }
+    if(o == fo)
+    {
+        cout << "\xFE"; //fruit once
+    }
+    if(o == f)
+    {
+        cout << "\xFE"; //fruit
+    }
+    if(o == p)
+    {
+        cout << setw((boundary_width / 2) + 1) << "Currnet Player: " << player_name;
+        cout << " \n"
+             << setw((boundary_width / 2)) << "Current score: " << score;
+        cout << "\n"
+             << setw((boundary_width / 2)) << "Highest Score: " << highest_score;
+    }
+    if(o == h)  //hide snake's extra trails
+    {
+        cout << "\b ";
+    }
+}
+
+void Game::Setup_snake_once()
+{
+    snake_x = boundary_width / 2;
+    snake_y = boundary_height / 2;
+    hide_sx = snake_x, hide_sy = snake_y;
+    Goto_XY(snake_x, snake_y, so);
+}
+
+void Game::Setup_snake()
+{
+    Goto_XY((hide_sx + 1), hide_sy, h);
+    Goto_XY(snake_x, snake_y, s);
+    //can't understand from here
+    for(int i = 0; i < tail_count; i++)
+    {
+        Goto_XY(tail_x[i], tail_y[i], t);
+    }
+    Goto_XY(tail_x[tail_count - 1] + 1, tail_y[tail_count - 1], h);
+}
+
+void Game::Setup_fruit_once()
+{
+    srand(time(NULL));
+    fruit_x = rand() % (boundary_width - 2) + 1;
+    srand(time(NULL));
+    fruit_y = rand() % (boundary_height - 2) + 1;
+    Goto_XY(fruit_x, fruit_y, fo);
+}
+
+void Game::Setup_fruit()
+{
+    fruit_x = rand() % (boundary_width - 2) + 1;
+    fruit_y = rand() % (boundary_height - 2) + 1;
+    Goto_XY(fruit_x, fruit_y, f);
+}
+
+void Game::Draw_boundary()
+{
+    system("cls");
+    for(int i = 0; i < boundary_width; i++)
+    {
+        Goto_XY(i, 0, b);
+        Goto_XY(i, boundary_height - 1, b);
+    }
+    for(int i = 0; i < boundary_height; i++)
+    {
+        Goto_XY(0, i, b);
+        Goto_XY(boundary_width - 1, i, b);
+    }
+}
+
+void Game::Take_input()
+{
+    if(_kbhit())
+    {
+        switch(_getch())
+        {
+        case 'a':
+            drxn = Left;
+            break;
+        case 'd':
+            drxn = Right;
+            break;
+        case 's':
+            drxn = Down;
+            break;
+        case 'w':
+            drxn = Up;
+            break;
+        case 'q':
+            game_over = true;
+            break;
+        case 'p':
+            drxn = Stop;
+            break;
+        default:
+            break;
+        }
+    }
+}
+
+void Game::Initiate_logic()
+{
+    hide_sx = snake_x, hide_sy = snake_y;
+    int prev_x, prev_y, prev_2x, prev_2y;
+    prev_x = tail_x[0];
+    prev_y = tail_y[0];
+    tail_x[0] = snake_x;
+    tail_y[0] = snake_y;
+    for(int i = 1; i < tail_count; i++)
+    {
+        prev_2x = tail_x[i];
+        prev_2y = tail_y[i];
+        tail_x[i] = prev_x;
+        tail_y[i] = prev_y;
+        prev_x = prev_2x;
+        prev_y = prev_2y;
+    }
+    //can't undrstand the above part
+    switch(drxn)
+    {
+    case Right:
+        snake_x++;
+        break;
+    case Left:
+        snake_x--;
+        break;
+    case Down:
+        snake_y++;
+        break;
+    case Up:
+        snake_y--;
+        break;
+    }
+    if((snake_x <= 0) || (snake_x >= (boundary_width - 1)) || (snake_y <= 0) || (snake_y >= (boundary_height - 1)))
+    {
+        Save_progress();
+        system("color c");
+        game_over = true;
+    }
+    if((snake_x == fruit_x) && (snake_y == fruit_y))
+    {
+        score += 100;
+        Setup_fruit();
+        if(score > highest_score)
+        {
+            highest_score += 100;
+        }
+        //can't understand from here
+        if(tail_count == 0)
+        {
+            tail_count += 2;
+        }
+        else
+        {
+            tail_count++;
+        }
+    }
+    for(int i = 0; i < tail_count; i++)
+    {
+        if((tail_x[i] == snake_x) && (tail_y[i] == snake_y))
+        {
+            Save_progress();
+            system("color c");
+            game_over = true;
+        }
+    }
+}
+
+void Game::Show_progress()
+{
+    Goto_XY(0, (boundary_height + 1), p);
+}
+
+void Game::Save_progress()
+{
+    ofstream file("save.dat", ios::out | ios::binary | ios::trunc);
+    file.write((char *)&G.highest_score, (sizeof(G.highest_score)));
+    file.close();
+}
+
+void Game::Read_progress()
+{
+    ifstream file("save.dat", ios::out | ios::binary);
+    while(file.read((char *)&G.saved_hs, sizeof(G.saved_hs)))
+    {
+        G.highest_score = G.saved_hs;
+    }
+    file.close();
+}
+
+int main()
+{
+    G.About_player();
+    G.Draw_boundary();
+    G.Setup_snake_once();
+    G.Setup_fruit_once();
+    G.Read_progress();
+    while(!G.game_over)
+    {
+        Sleep(120 - (G.diff_level * 60));
+        G.Take_input();
+        G.Initiate_logic();
+        G.Setup_snake();
+        G.Show_progress();
+    }
+    cout << "\n";
+    system("pause");
+    return 0;
+}
