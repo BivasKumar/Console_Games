@@ -1,0 +1,169 @@
+#include <iostream>
+#include <windows.h>
+#include <conio.h>
+#include <time.h>
+
+using namespace std;
+
+void Line();
+
+void Line()
+{
+    for(int i = 0; i < 50; i++)
+    {
+        cout << "\xFE";
+    }
+}
+
+class Game
+{
+public:
+    int rand_num;
+    bool proceed;
+    bool Welcome();
+    void Credits();
+    void Generate_Random_Number();
+    bool Check();
+};
+
+bool Game::Welcome()
+{
+again:
+    system("cls");
+    Line();
+    cout << endl << "\tWelcome to the guessing game!" << endl;
+    Line();
+    cout << endl << "->A random number will be generated between 0-10." << endl;
+    cout << endl << "->You'll have 3 chances to guess that number." << endl;
+    cout << endl << "->The game will give you hints while you guess it.";
+    cout << endl << endl << "Press P(play) or Q(quit)!";
+    cout << endl << ">>> ";
+    switch(getch())
+    {
+    case 'p':
+        proceed = true;
+        break;
+    case 'P':
+        proceed = true;
+        break;
+    case 'q':
+        proceed = false;
+        break;
+    case 'Q':
+        proceed = false;
+        break;
+    default:
+        cout << endl << endl << "Wrong choice! Please try again!" << endl << endl;
+        system("pause");
+        goto again;
+        break;
+    }
+    return proceed;
+}
+
+void Game::Credits()
+{
+    system("cls");
+    Line();
+    cout << endl << "\t\tCredits" << endl;
+    Line();
+    cout << endl << "Author: Harsh Dayal" << endl;
+    cout << endl << "Class: XII" << endl;
+    cout << endl << "Softwares: Microsoft Visual Studio Code & TDM-GCC" << endl;
+    cout << endl << "Information: This project was developed as an assignment for submission to CBSE." << endl;
+    cout << endl;
+    system("pause");
+}
+
+void Game::Generate_Random_Number()
+{
+    system("cls");
+    srand(time(NULL));
+    rand_num = 1 + rand() % 9;
+    system("color A");
+    cout << "\tLoading Game..." << endl;
+    cout << "[";
+    for(int i = 0; i < 30; i++)
+    {
+        cout << "\xFE";
+        Sleep(100);
+    }
+    cout << "]" << endl;
+    Sleep(500);
+    system("cls");
+    system("color 7");
+    cout << endl << "Generating a random number";
+    for(int i = 0; i < 5; i++)
+    {
+        cout << ".";
+        Sleep(500);
+    }
+    cout << endl;
+}
+
+bool Game::Check()
+{
+    int guess;
+    bool loop;
+    cout << endl << "Your guess: ";
+    cin >> guess;
+    if(guess == rand_num)
+    {
+        cout << endl << "Wright guess!";
+        cout << endl << "Congrats!" << endl;
+        loop = false;
+    }
+    else if(guess < rand_num)
+    {
+        cout << endl << "Wrong guess!";
+        cout << endl << "A little more." << endl;
+        loop = true;
+    }
+    else if(guess > rand_num)
+    {
+        cout << endl << "Wrong guess!";
+        cout << endl << "A little less." << endl;
+        loop = true;
+    };
+    return loop;
+}
+
+int main()
+{
+again:
+    Game G;
+    G.Welcome();
+    if(G.proceed == true)
+    {
+        char a;
+        bool loop = true;
+        int trials = 0;
+        G.Credits();
+        G.Generate_Random_Number();
+        while(loop == true && trials < 3)
+        {
+            loop = G.Check();
+            if(loop == true)
+            {
+                trials++;
+            }
+        }
+        cout << endl;
+        system("pause");
+        system("cls");
+        cout << "Want to play again(Y/N)" << endl << ">>> ";
+        cin >> a;
+        if(a == 'y' || a == 'Y')
+        {
+            goto again;
+        }
+    }
+    if(G.proceed == false)
+    {
+        system("cls");
+        cout << "At least try it once!" << endl;
+    }
+    cout << endl;
+    system("pause");
+    return 0;
+}
